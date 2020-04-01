@@ -13,7 +13,7 @@ namespace WebApplication1.Services
         public IEnumerable<Student> GetStudents();
         public Student GetStudent(string id);
         // cw5 new
-        public Enrollment PostEnrollStudent(Enrollment enrollment);
-        public Enrollment PostPromoteStudent(int semester, string studies);
+        public Enrollment PostEnrollStudent([FromBody] Student student);
+        public Enrollment PostPromoteStudents([FromBody] Enrollment promote);
     }
 }

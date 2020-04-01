@@ -20,17 +20,21 @@ namespace WebApplication1.Controllers
             _dbService = service;
         }
 
-        [HttpPost]
-        public IActionResult PostEnrollStudent(Enrollment enrollment)
+        [HttpPost()]
+        public IActionResult PostEnrollStudent(Student student)
         {
-            return Created("", null);
+            if (_dbService.PostEnrollStudent(student) == null)
+                return BadRequest("X");
+            return Created("",_dbService.PostEnrollStudent(student));
         }
 
-        [HttpPost]
-        public IActionResult PostPromoteStudent(int Semester, string Studies)
+        [HttpPost("promotions")]
+        public IActionResult PostPromoteStudent(Enrollment promote)
         {
-            return Created("", null);
+            if (_dbService.PostPromoteStudents(promote) == null)
+                return NotFound("X");
+            return Created("", _dbService.PostPromoteStudents(promote));
         }
-
     }
+
 }

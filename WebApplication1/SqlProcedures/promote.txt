@@ -1,1 +1,22 @@
-﻿
+﻿CREATE PROCEDURE PromoteStudents 
+	@Studies VARCHAR(100), 
+	@Semester INT
+AS
+BEGIN
+	DECLARE @IdStudies INT, @IdEnrollment INT, @OldIdEnrollment INT;
+
+	IF NOT EXISTS (SELECT * FROM Studies WHERE Name = @Studies)
+		RAISERROR('NO SUCH STUDIES',16,1);
+
+	SELECT @IdStudies = IdStudy FROM Studies WHERE Name = @Studies
+	IF NOT EXISTS (SELECT * FROM Enrollment WHERE IdStudy = @IdStudies AND Semester = @Semester)
+		RAISERROR('NO ENROLLMENT FOR GIVEN SEMESTER',16,1);
+	
+	SELECT @OldIdEnrollment = IdEnrollment FROM Enrollment WHERE IdStudy = @IdStudies AND Semester = @Semester;
+	IF NOT EXISTS (SELECT * FROM Enrollment WHERE IdStudy = @IdStudies AND Semester = (@Semester+1))
+		INSERT INTO Enrollment VALUES((SELECT MAX(IdEnrollment) + 1 FROM Enrollment), @Semester+1, @IdStudies, GETDATE());
+	
+	SELECT @IdEnrollment = IdEnrollment FROM Enrollment WHERE IdStudy = @IdStudies AND Semester = @Semester+1;
+	
+	UPDATE Student SET IdEnrollment = @IdEnrollment WHERE IdEnrollment = @OldIdEnrollment;
+END;
