@@ -145,7 +145,7 @@ namespace WebApplication1.Services
                     com.ExecuteNonQuery();
 
                     tran.Commit();
-
+                    tran.Dispose();
                     // no exception thrown so ok 201
                     res = new Enrollment {
                         Semester = 1,
@@ -182,6 +182,7 @@ namespace WebApplication1.Services
                     com.ExecuteNonQuery();
 
                     tran.Commit();
+                    tran.Dispose();
                     res = new Enrollment
                     {
                         Semester = promote.Semester + 1,
