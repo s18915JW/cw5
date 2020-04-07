@@ -10,6 +10,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using WebApplication1.Middlewares;
 using WebApplication1.Services;
 
 namespace WebApplication1
@@ -37,6 +38,8 @@ namespace WebApplication1
             {
                 app.UseDeveloperExceptionPage();
             }
+
+            app.UseMiddleware<LoggingMiddleware>();
 
             app.Use(async (context, next) =>
             {

@@ -1,0 +1,25 @@
+﻿GET /api/students  
+GET /favicon.ico  
+GET /api/students  
+GET /api/students/s2  
+GET /api/students/s4  
+GET /api/students/s5   
+GET /api/students/  ?name=Andrzej&Index=s3
+GET /api/students/  ?Index=s5
+GET /api/students/  ?Index=s4
+GET /api/students/  ?Index=s1&firstName=Jan&Semester=2
+GET /api/students/s3  
+GET /api/students  
+GET /favicon.ico
+POST /api/enrollments {
+	"IndexNumber": "s5", 
+	"FirstName": "Michał", 
+	"LastName": "Jakiś", 
+	"BirthDate": "2020-04-10",
+	"Studies": "Stuies 2" 
+} 
+GET /api/students  
+GET /favicon.ico  
+GET /api/students  
+GET /api/students/s1
+GET /api/students/  ?Index=s1
