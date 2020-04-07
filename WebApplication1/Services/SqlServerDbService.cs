@@ -52,7 +52,7 @@ namespace WebApplication1.Services
                 com.Connection = con;
                 com.CommandText =
                     "select IndexNumber, FirstName, LastName, BirthDate, Semester, Name from enrollment " +
-                    "join Studies on Studies.IdStudy = Enrollment.IdEnrollment " +
+                    "join Studies on Studies.IdStudy = Enrollment.IdStudy " +
                     "join Student on Student.IdEnrollment = Enrollment.IdEnrollment " +
                     "where IndexNumber = @index";
 
