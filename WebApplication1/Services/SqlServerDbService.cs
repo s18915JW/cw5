@@ -2,9 +2,8 @@
 using System;
 using System.Collections.Generic;
 using System.Data.SqlClient;
-using System.Globalization;
-using System.Linq;
-using System.Threading.Tasks;
+using WebApplication1.DTO;
+using WebApplication1.Encryptors;
 using WebApplication1.Models;
 
 namespace WebApplication1.Services
@@ -77,8 +76,6 @@ namespace WebApplication1.Services
             return null;
         }
 
-
-
         public Enrollment PostEnrollStudent([FromBody] Student student)
         {
             Enrollment res = null;  // later if still null in controller response will be 400
@@ -93,14 +90,14 @@ namespace WebApplication1.Services
                 com.Transaction = tran;
 
                 try // try for all possible errors
-                {               
+                {
                     // studies 
                     com.Parameters.AddWithValue("StudiesName", student.StudiesName);
-                    com.CommandText = 
+                    com.CommandText =
                         "SELECT IdStudy FROM Studies WHERE Name=@StudiesName";
                     var dr = com.ExecuteReader();
                     dr.Read();
-                    int IdStudy = Convert.ToInt32(dr["IdStudy"]);  
+                    int IdStudy = Convert.ToInt32(dr["IdStudy"]);
                     dr.Close();
                     com.Parameters.AddWithValue("IdStudy", IdStudy);
 
@@ -129,17 +126,17 @@ namespace WebApplication1.Services
                         EId = Convert.ToInt32(dr["IdEnrollment"]);
                         dr.Close();
                     }
-                    else 
+                    else
                     {
                         EId = Convert.ToInt32(IdEnrollment);
                     }
                     com.Parameters.AddWithValue("IdEnrollment", EId);
 
                     // student
-                    com.Parameters.AddWithValue("Index", student.IndexNumber); 
+                    com.Parameters.AddWithValue("Index", student.IndexNumber);
                     com.Parameters.AddWithValue("FName", student.FirstName);
                     com.Parameters.AddWithValue("LName", student.LastName);
-                    com.Parameters.AddWithValue("BDate", DateTime.Parse(student.BirthDate.ToString())); 
+                    com.Parameters.AddWithValue("BDate", DateTime.Parse(student.BirthDate.ToString()));
 
                     com.CommandText = "INSERT INTO Student VALUES(@Index, @Fname, @LName, @BDate, @IdEnrollment);";
                     com.ExecuteNonQuery();
@@ -147,7 +144,8 @@ namespace WebApplication1.Services
                     tran.Commit();
                     tran.Dispose();
                     // no exception thrown so ok 201
-                    res = new Enrollment {
+                    res = new Enrollment
+                    {
                         Semester = 1,
                         Studies = student.StudiesName
                     };
@@ -160,7 +158,7 @@ namespace WebApplication1.Services
             }
         }
 
-        public Enrollment PostPromoteStudents(Enrollment promote)
+        public Enrollment PostPromoteStudents([FromBody] Enrollment promote)
         {
             Enrollment res = null;
 
@@ -196,6 +194,67 @@ namespace WebApplication1.Services
                 return res;
             }
         }
-    }
 
+        public bool Login([FromBody] LoginRequestDto loginRequest)
+        {
+            using (var con = new SqlConnection(ConString))
+            using (var com = new SqlCommand())
+            {
+                com.Connection = con;
+                con.Open();
+                try
+                {
+                    com.Parameters.AddWithValue("Index", loginRequest.Login);
+                    com.CommandText = "SELECT Password, Salt FROM Student WHERE IndexNumber = @Index";
+
+                    var dr = com.ExecuteReader();
+                    dr.Read();
+                    return PasswordEncryptor.Validate(loginRequest.Password, dr["Salt"].ToString(), dr["Password"].ToString());
+                }
+                catch (SqlException)
+                {
+                    return false;
+                }
+            }
+        }
+
+        public void UpdateRefreshToken(string token, string login)
+        {
+            using (var connection = new SqlConnection(ConString))
+            using (var command = new SqlCommand())
+            {
+                command.Connection = connection;
+                connection.Open();
+                try
+                {
+                    command.Parameters.AddWithValue("RT", token);
+                    command.Parameters.AddWithValue("Index", login);
+                    command.CommandText = "UPDATE Student SET RefreshToken = @RT WHERE IndexNumber = @Index";
+                    command.ExecuteNonQuery();
+                }
+                catch (SqlException) { }
+            }
+        }
+
+        public bool GetRefreshToken(string token)
+        {
+            using (var connection = new SqlConnection(ConString))
+            using (var command = new SqlCommand())
+            {
+                command.Connection = connection;
+                connection.Open();
+                try
+                {
+                    command.Parameters.AddWithValue("RT", token);
+                    command.CommandText = "SELECT * FROM Student WHERE RefreshToken = @RT";
+                    return command.ExecuteReader().HasRows;
+                }
+                catch (SqlException)
+                {
+                    return false;
+                }
+            }
+        }
+
+    }
 }

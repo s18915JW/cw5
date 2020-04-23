@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using WebApplication1.Models;
 using WebApplication1.Services;
@@ -10,6 +6,7 @@ using WebApplication1.Services;
 namespace WebApplication1.Controllers
 {
     [ApiController]
+    [Authorize(Roles = "Employee")]
     [Route("api/enrollments")]
     public class EnrollmentsController : ControllerBase
     {
@@ -25,7 +22,7 @@ namespace WebApplication1.Controllers
         {
             if (_dbService.PostEnrollStudent(student) == null)
                 return BadRequest("X");
-            return Created("",_dbService.PostEnrollStudent(student));
+            return Created("", _dbService.PostEnrollStudent(student));
         }
 
         [HttpPost("promotions")]

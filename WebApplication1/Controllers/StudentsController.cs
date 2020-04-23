@@ -1,19 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using WebApplication1.Models;
-using Microsoft.AspNetCore.Mvc;
-using System.Data.SqlClient;
+﻿using Microsoft.AspNetCore.Mvc;
 using WebApplication1.Services;
+using Microsoft.AspNetCore.Authorization;
 
 namespace WebApplication1.Controllers
 {
     [ApiController]
+    [Authorize(Roles = "Employee")]
     [Route("api/students")]
     public class StudentsController : ControllerBase
     {
-
         private IStudentsDbService _dbService;
 
         public StudentsController(IStudentsDbService service)
@@ -34,5 +29,6 @@ namespace WebApplication1.Controllers
                 return Ok(_dbService.GetStudent(id));
             return NotFound("Nie znaleziono studenta");
         }
+
     }
 }

@@ -1,16 +1,11 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+using System.Text;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
-using WebApplication1.Middlewares;
+using Microsoft.IdentityModel.Tokens;
 using WebApplication1.Services;
 
 namespace WebApplication1
@@ -28,7 +23,23 @@ namespace WebApplication1
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddScoped<IStudentsDbService, SqlServerDbService>();
-            services.AddControllers();
+
+            services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+                .AddJwtBearer(options =>
+                {
+                    options.TokenValidationParameters = new TokenValidationParameters
+                    {
+                        ValidateIssuer = true,
+                        ValidateAudience = true,
+                        ValidateLifetime = true,
+                        ValidIssuer = "Gakko",
+                        ValidAudience = "Students",
+                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Configuration["SecretKey"]))
+                    };
+                });
+
+            services.AddControllers()
+                .AddXmlSerializerFormatters();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -39,30 +50,31 @@ namespace WebApplication1
                 app.UseDeveloperExceptionPage();
             }
 
-            app.UseMiddleware<LoggingMiddleware>();
+            //app.UseMiddleware<LoggingMiddleware>();
+            //
+            //app.Use(async (context, next) =>
+            //{
+            //    if (!context.Request.Headers.ContainsKey("Index"))
+            //    {
+            //        context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+            //        await context.Response.WriteAsync("Brak indeksu w naglowku");
+            //        return;
+            //    }
 
-            app.Use(async (context, next) =>
-            {
-                if (!context.Request.Headers.ContainsKey("Index"))
-                {
-                    context.Response.StatusCode = StatusCodes.Status401Unauthorized;
-                    await context.Response.WriteAsync("Brak indeksu w naglowku");
-                    return;
-                }
+            //    var Index = context.Request.Headers["Index"];
+            //    if (service.GetStudent(Index) == null)
+            //    {
+            //        context.Response.StatusCode = StatusCodes.Status404NotFound;
+            //        await context.Response.WriteAsync("Nie znaleziono studenta");
+            //        return;
+            //    }
 
-                var Index = context.Request.Headers["Index"];
-                if (service.GetStudent(Index) == null)
-                {
-                    context.Response.StatusCode = StatusCodes.Status404NotFound;
-                    await context.Response.WriteAsync("Nie znaleziono studenta");
-                    return;
-                }
-
-                await next();
-            });
+            //    await next();
+            //});
 
             app.UseRouting();
 
+            app.UseAuthentication();
             app.UseAuthorization();
 
             app.UseEndpoints(endpoints =>
