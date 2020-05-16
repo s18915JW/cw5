@@ -1,8 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
-using System.Data.SqlClient;
 using System.Linq;
 using WebApplication1.DTOs.Requests;
 using WebApplication1.EFModels;
@@ -51,8 +49,8 @@ namespace WebApplication1.EFServices
                 return null;   
 
             // check if student's index is unique
-                if (db.Student.Any(x => x.IndexNumber == s.IndexNumber))
-                    return null;
+            if (db.Student.Any(x => x.IndexNumber == s.IndexNumber))
+                return null;
 
             var studies = db.Studies.FirstOrDefault(x => x.Name == s.StudiesName);
             var enrollment = db.Enrollment.FirstOrDefault(x => x.Semester == 1 && x.IdStudy == studies.IdStudy);
@@ -119,11 +117,57 @@ namespace WebApplication1.EFServices
             //    IdStudy = db.Studies.OrderByDescending(x => x.IdStudy).FirstOrDefault(x => x.Name == p.Studies).IdStudy
             //};
 
+
             // nie byłem pewny czy procedura czy trzeba napisać całą
 
 
+            // check for studies
+            if (!db.Studies.Any(x => x.Name == p.Studies))
+                return null;
 
+            var studies = db.Studies.FirstOrDefault(x => x.Name == p.Studies);
 
+            // check if enrollment like that exists
+            if (!db.Enrollment.Any(x => x.Semester == p.Semester && x.IdStudy == studies.IdStudy))
+                return null;            
+            
+            // search for record in enrollment with semester + 1
+            var nextEnrollment = db.Enrollment.FirstOrDefault(x => x.IdStudy == studies.IdStudy && x.Semester == p.Semester + 1);
+            int newId = 0;
+            
+            // insert new enrollment if not found
+            if (nextEnrollment == null)
+            {
+                var maxId = db.Enrollment
+                   .OrderByDescending(x => x.IdStudy)
+                   .FirstOrDefault().IdEnrollment;
+
+                newId = maxId + 1;
+
+                db.Add(new Enrollment
+                {
+                    IdEnrollment = maxId + 1,
+                    Semester = p.Semester + 1,
+                    IdStudy = studies.IdStudy,
+                    StartDate = DateTime.Now
+                });
+            }
+            if (nextEnrollment != null)
+                newId = nextEnrollment.IdEnrollment;
+
+            var toUpdate = db.Student.Where(x => x.IdEnrollment == db.Enrollment.FirstOrDefault(x => x.Semester == p.Semester && x.IdStudy == studies.IdStudy).IdEnrollment);
+            foreach (var student in toUpdate)
+                student.IdEnrollment = newId;
+
+            db.SaveChanges();
+
+            return new Enrollment
+            {
+                IdEnrollment = newId,
+                Semester = p.Semester + 1,
+                IdStudy = studies.IdStudy,
+                StartDate = nextEnrollment == null ? DateTime.Now : nextEnrollment.StartDate
+            };
         }
 
     }
