@@ -7,7 +7,7 @@ namespace WebApplication1.Controllers
 {
     [ApiController]
     [Authorize(Roles = "Employee")]
-    [Route("api/enrollments")]
+    [Route("api-old/enrollments")]
     public class EnrollmentsController : ControllerBase
     {
         private IStudentsDbService _dbService;
