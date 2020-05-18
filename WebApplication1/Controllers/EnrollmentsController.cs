@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using WebApplication1.DTOs.Requests;
 using WebApplication1.Models;
 using WebApplication1.Services;
 
@@ -18,19 +19,21 @@ namespace WebApplication1.Controllers
         }
 
         [HttpPost()]
-        public IActionResult PostEnrollStudent(Student student)
+        public IActionResult PostEnrollStudent(StudentEnrollmentRequest s)
         {
-            if (_dbService.PostEnrollStudent(student) == null)
+            Enrollment e = _dbService.PostEnrollStudent(s);
+            if (e == null)
                 return BadRequest("X");
-            return Created("", _dbService.PostEnrollStudent(student));
+            return Created("", e);
         }
 
         [HttpPost("promotions")]
-        public IActionResult PostPromoteStudent(Enrollment promote)
+        public IActionResult PostPromoteStudent(PromotionRequest p)
         {
-            if (_dbService.PostPromoteStudents(promote) == null)
-                return NotFound("X");
-            return Created("", _dbService.PostPromoteStudents(promote));
+            Enrollment e = _dbService.PostPromoteStudents(p);
+            if (e == null)
+                return BadRequest("X");
+            return Created("", e);
         }
     }
 

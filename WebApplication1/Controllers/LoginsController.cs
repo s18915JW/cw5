@@ -26,7 +26,7 @@ namespace WebApplication1.Controllers
         }
 
         [HttpPost]
-        public IActionResult Login(LoginRequestDto loginRequest)
+        public IActionResult Login(LoginRequest loginRequest)
         {
             if (!_dbService.Login(loginRequest))
                 return Unauthorized("Błąd logowania");

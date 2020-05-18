@@ -55,7 +55,7 @@ namespace WebApplication1.EFServices
             var studies = db.Studies.FirstOrDefault(x => x.Name == s.StudiesName);
             var enrollment = db.Enrollment.FirstOrDefault(x => x.Semester == 1 && x.IdStudy == studies.IdStudy);
 
-            var idForStudent = 0;
+            var id = 0;
 
             // enrollment does not exist
             if (enrollment == null)
@@ -65,18 +65,18 @@ namespace WebApplication1.EFServices
                     .OrderByDescending(x => x.IdEnrollment)
                     .FirstOrDefault().IdEnrollment;
 
-                idForStudent = maxId + 1;
+                id = maxId + 1;
 
                 db.Enrollment.Add(new Enrollment
                 {
-                    IdEnrollment = maxId + 1,
+                    IdEnrollment = id,
                     Semester = 1,
                     IdStudy = studies.IdStudy,
                     StartDate = DateTime.Now
                 });
             }
             if (enrollment != null)
-                idForStudent = enrollment.IdEnrollment;
+                id = enrollment.IdEnrollment;
             
             db.Student.Add(new Student
             {
@@ -84,25 +84,16 @@ namespace WebApplication1.EFServices
                 FirstName = s.FirstName,
                 LastName = s.LastName,
                 BirthDate = s.BirthDate,
-                IdEnrollment = idForStudent
+                IdEnrollment = id
             });
             db.SaveChanges();
-
-            // cleanup later, right now works like that
-            var id = idForStudent;
-            var startdate = DateTime.Now;
-            if (enrollment != null)
-            {
-                id = enrollment.IdEnrollment;
-                startdate = enrollment.StartDate;
-            }
 
             return new Enrollment
             {
                 IdEnrollment = id,
                 Semester = 1,
                 IdStudy = studies.IdStudy,
-                StartDate = startdate
+                StartDate = enrollment == null ? DateTime.Now : enrollment.StartDate
             };
         }
 
@@ -116,9 +107,6 @@ namespace WebApplication1.EFServices
             //    Semester = p.Semester + 1,
             //    IdStudy = db.Studies.OrderByDescending(x => x.IdStudy).FirstOrDefault(x => x.Name == p.Studies).IdStudy
             //};
-
-
-            // nie byłem pewny czy procedura czy trzeba napisać całą
 
 
             // check for studies

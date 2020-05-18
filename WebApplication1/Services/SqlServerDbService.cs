@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Data.SqlClient;
 using WebApplication1.DTO;
+using WebApplication1.DTOs.Requests;
 using WebApplication1.Encryptors;
 using WebApplication1.Models;
 
@@ -76,7 +77,7 @@ namespace WebApplication1.Services
             return null;
         }
 
-        public Enrollment PostEnrollStudent([FromBody] Student student)
+        public Enrollment PostEnrollStudent([FromBody] StudentEnrollmentRequest s)
         {
             Enrollment res = null;  // later if still null in controller response will be 400
 
@@ -92,7 +93,7 @@ namespace WebApplication1.Services
                 try // try for all possible errors
                 {
                     // studies 
-                    com.Parameters.AddWithValue("StudiesName", student.StudiesName);
+                    com.Parameters.AddWithValue("StudiesName", s.StudiesName);
                     com.CommandText =
                         "SELECT IdStudy FROM Studies WHERE Name=@StudiesName";
                     var dr = com.ExecuteReader();
@@ -133,10 +134,10 @@ namespace WebApplication1.Services
                     com.Parameters.AddWithValue("IdEnrollment", EId);
 
                     // student
-                    com.Parameters.AddWithValue("Index", student.IndexNumber);
-                    com.Parameters.AddWithValue("FName", student.FirstName);
-                    com.Parameters.AddWithValue("LName", student.LastName);
-                    com.Parameters.AddWithValue("BDate", DateTime.Parse(student.BirthDate.ToString()));
+                    com.Parameters.AddWithValue("Index", s.IndexNumber);
+                    com.Parameters.AddWithValue("FName", s.FirstName);
+                    com.Parameters.AddWithValue("LName", s.LastName);
+                    com.Parameters.AddWithValue("BDate", DateTime.Parse(s.BirthDate.ToString()));
 
                     com.CommandText = "INSERT INTO Student VALUES(@Index, @Fname, @LName, @BDate, @IdEnrollment);";
                     com.ExecuteNonQuery();
@@ -147,7 +148,7 @@ namespace WebApplication1.Services
                     res = new Enrollment
                     {
                         Semester = 1,
-                        Studies = student.StudiesName
+                        Studies = s.StudiesName
                     };
                 }
                 catch (SqlException)
@@ -158,7 +159,7 @@ namespace WebApplication1.Services
             }
         }
 
-        public Enrollment PostPromoteStudents([FromBody] Enrollment promote)
+        public Enrollment PostPromoteStudents([FromBody] PromotionRequest p)
         {
             Enrollment res = null;
 
@@ -173,8 +174,8 @@ namespace WebApplication1.Services
 
                 try
                 {
-                    com.Parameters.AddWithValue("Studies", promote.Studies);
-                    com.Parameters.AddWithValue("Semester", promote.Semester);
+                    com.Parameters.AddWithValue("Studies", p.Studies);
+                    com.Parameters.AddWithValue("Semester", p.Semester);
 
                     com.CommandType = System.Data.CommandType.StoredProcedure;
                     com.ExecuteNonQuery();
@@ -183,8 +184,8 @@ namespace WebApplication1.Services
                     tran.Dispose();
                     res = new Enrollment
                     {
-                        Semester = promote.Semester + 1,
-                        Studies = promote.Studies
+                        Semester = p.Semester + 1,
+                        Studies = p.Studies
                     };
                 }
                 catch (SqlException)
@@ -195,7 +196,7 @@ namespace WebApplication1.Services
             }
         }
 
-        public bool Login([FromBody] LoginRequestDto loginRequest)
+        public bool Login([FromBody] LoginRequest loginRequest)
         {
             using (var con = new SqlConnection(ConString))
             using (var com = new SqlCommand())
