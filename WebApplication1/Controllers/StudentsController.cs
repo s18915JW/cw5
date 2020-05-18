@@ -29,6 +29,6 @@ namespace WebApplication1.Controllers
                 return Ok(_dbService.GetStudent(id));
             return NotFound("Nie znaleziono studenta");
         }
-
     }
+
 }
